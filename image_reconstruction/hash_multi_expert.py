@@ -785,7 +785,7 @@ def main():
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='Training RGBPose3D with Multi-Expert Hash Encoding')
-    parser.add_argument('--config', type=str, default='configs/config_RGB_pose3d_hash_multi_expert.yaml',
+    parser.add_argument('--config', type=str, default='configs/hash_multi_expert.yaml',
                         help='Path to config file')
     parser.add_argument('--logdir', type=str, default='./log/hash_multi_expert',
                         help='Directory to save logs and models')

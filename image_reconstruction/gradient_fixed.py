@@ -1136,7 +1136,7 @@ def main():
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='Training RGBPose3D with Gradient Fixed Manager Network')
-    parser.add_argument('--config', type=str, default='configs/config_RGB_pose3d_manager_fixed.yaml',
+    parser.add_argument('--config', type=str, default='configs/manager_fixed.yaml',
                         help='Path to config file')
     parser.add_argument('--logdir', type=str, default='./log/pose3d_gradient_fixed',
                         help='Directory to save logs and models')

@@ -33,7 +33,7 @@ from datasets.RGBPose3D_GlobalNorm_Cached import RGBPose3DDatasetGlobalNorm
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Pose3D RGB MoE Training (full pipeline)')
-    parser.add_argument('--config', type=str, default='configs/config_RGB_pose3d_manager_fixed.yaml',
+    parser.add_argument('--config', type=str, default='configs/manager_fixed.yaml',
                         help='配置文件路径')
     parser.add_argument('--logdir', type=str, default='./log/pose3d_moe_full',
                         help='日志与模型输出目录')

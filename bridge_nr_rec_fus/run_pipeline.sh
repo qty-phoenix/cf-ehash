@@ -76,7 +76,7 @@ fi
 python bridge_nr_rec_fus/step4_evaluate.py \
     --gt_pose ./MyMoE/coords3d/uvfdata2.xlsx \
     --pred_pose ./bridge_nr_rec_fus/data/predicted_poses_uvfdata2.xlsx \
-    --config ./configs/config_RGB_pose3d_uvfdata2.yaml \
+    --config ./configs/uvfdata2.yaml \
     --images_dir ./MyMoE/uvfdata2 \
     --logdir_gt ./bridge_nr_rec_fus/results/inr_gt_poses \
     --logdir_pred ./bridge_nr_rec_fus/results/inr_pred_poses \

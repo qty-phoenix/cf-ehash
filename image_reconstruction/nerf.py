@@ -549,7 +549,7 @@ def main():
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='Training RGBPose3D with NeRF')
-    parser.add_argument('--config', type=str, default='configs/config_RGB_pose3d_nerf_uvfdata2.yaml',
+    parser.add_argument('--config', type=str, default='configs/nerf_uvfdata2.yaml',
                         help='Path to config file')
     parser.add_argument('--logdir', type=str, default='./log/nerf',
                         help='Directory to save logs and models')
