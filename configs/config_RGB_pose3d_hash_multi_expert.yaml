@@ -1,0 +1,134 @@
+seed: 0
+wandb_project: 'inr_moe_rgb_pose3d_hash_multi_expert'
+
+MODEL:
+  model_name: 'inr_moe_hashhybrid_rgb'  # 多专家混合哈希编码模型
+  in_dim: 3  # 3D坐标（包含pose信息）
+  out_dim: 1  # 灰度图，set to 3 if RGB
+  decoder_hidden_dim: 64  # 解码器隐藏层维度
+  decoder_n_hidden_layers: 2  # 解码器层数
+  decoder_input_encoding: 'HE_MoE'  # 使用多专家混合哈希编码（HE_MoE）
+  decoder_nl: 'sine'  # 使用SIREN激活函数
+  decoder_init_type: 'siren'  # SIREN专用初始化
+  n_experts: 4  # 4个专家
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 30.0
+  decoder_trainable_freqs: False
+  top_k: 2  # 每次选择top-2专家
+  
+  # 多专家混合哈希编码参数配置
+  # 前6层共用，后6层使用多专家路由（每个专家有独立的6层哈希表）
+  hash_n_levels: 12  # 总共12层
+  hash_shared_levels: 6  # 前6层共享，后6层多专家
+  hash_n_features_per_level: 2  # 每层特征数
+  hash_log2_hashmap_size: 14  # 哈希表大小 2^14 = 16384
+  hash_base_resolution: 16  # 最粗糙分辨率
+  hash_finest_resolution: 2048  # 最精细分辨率（最后一层）
+
+  # Manager网络配置（只使用PE编码，不拼接专家特征）
+  manager_hidden_dim: 128  # Manager隐藏层维度
+  manager_n_hidden_layers: 2  # Manager层数
+  manager_input_encoding: 'PE'  # Manager使用位置编码（不拼接专家特征）
+  manager_nl: 'sine'  # 使用SIREN激活函数
+  manager_init: 'siren'  # SIREN专用初始化
+  centroid_type: 'random'
+  manager_type: 'standard'
+  manager_bias: 'none'
+  experts_bias_std: 0.1
+  experts_bias_weight: 1.0
+  manager_softmax_temperature: 1.0
+  manager_softmax_temp_trainable: False
+  manager_use_lipschitz: False
+  manager_q_activation: 'softmax'
+  manager_clamp_q: 0.0
+  manager_conditioning: 'cat'  # 拼接前6层共享哈希编码特征
+  manager_mixing: False
+  manager_do: False
+  load_pt_manager: False
+  shared_encoder: False
+  gaussian_std: 0.05
+  prob_std: 0.2
+  manager_gt_input_sanitycheck: False
+  manager_aux_branch_hidden_dim: 1
+  grid_patch_size: 4096
+
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [ 100, 0.2, 100, 0.4, 0.0, 0.0 ]
+  scale_by_q_grad: False
+  loss_type: '100rgbrecon+0.1balance'  # 重建损失权重100 + 平衡损失0.1
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+  rgbrecon_metric: 'l2'
+
+DATA:
+  name: 'RGBPOSE3D'
+  dataset_path: './MyMoE/images'
+  pose_file: './MyMoE/coords3d/mri.xlsx'
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true
+  use_global_norm: true  # 使用全局归一化，保持帧间空间一致性
+
+TRAINING:
+  n_points: 10000
+  nonmnfld_sample_type: 'combined'
+  grid_res: 160  # 匹配图像分辨率
+  lr: 1.0e-4  # 基础学习率
+  lr_gamma: 0.999  # 学习率衰减率
+  lr_scheduler: 'ExponentialLR'
+  num_epochs: 2000  # 训练轮数
+  batch_size: 1
+  num_workers: 0
+  refine_epoch: 0
+  grad_clip_norm: 1.0  # 梯度裁剪
+  normalize_normal_loss: False
+  unsigned_n: True
+  unsigned_d: False
+  export_vis: False
+  manager_freeze_fraction: 0.0
+  n_loss_type: 'cos'
+  inter_loss_type: 'exp'
+  sampler_prob: 'none'
+  refine_q_boundaries: False
+  refine_q_boundaries_every: 10
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon+0.1balance'},
+          ]
+
+TESTING:
+  epoch_n_eval: [0, 1000, 100]
+  plot_second_derivs: False
+  batch_size: 1
+  num_workers: 1
+  n_points: 256
+  n_samples: 1
+  grid_res: 160  # 匹配图像分辨率
+  nonmnfld_sample_type: 'grid'
+  plot_q_grad: False
+
+

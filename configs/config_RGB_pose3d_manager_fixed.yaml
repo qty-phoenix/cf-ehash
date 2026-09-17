@@ -1,0 +1,132 @@
+seed: 0
+wandb_project: 'inr_moe_rgb_pose3d_manager_fixed'
+
+MODEL:
+  model_name: 'inr_moe_rgb'
+  in_dim: 3
+  out_dim: 1 # set to 3 if RGB
+  decoder_hidden_dim: 128  # 与预训练模型保持一致
+  decoder_n_hidden_layers: 2
+  decoder_input_encoding: 'PE'
+  decoder_nl: 'sine'
+  decoder_init_type: 'siren'
+  n_experts: 4
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 10.
+  decoder_trainable_freqs: False
+  top_k: 2
+
+  # Manager网络改进配置
+  manager_hidden_dim: 128  # 🔥 改为128（与hash一致，从256降低）
+  manager_n_hidden_layers: 2  # 🔥 改为2层（与hash一致，从3层降低）
+  manager_input_encoding: 'PE'  # 使用位置编码而不是学习编码
+  manager_nl: 'sine'  # 使用sine激活函数
+  manager_init: 'siren'  # 使用SIREN初始化
+  centroid_type: 'random'
+  manager_type: 'standard'
+  manager_bias: 'none'
+  experts_bias_std: 0.1
+  experts_bias_weight: 1.0
+  manager_softmax_temperature: 1.0  # 🔥 改为1.0（与hash一致，更平滑）
+  manager_softmax_temp_trainable: False  # 🔥 改为False（与hash一致，固定温度）
+  manager_use_lipschitz: False
+  manager_q_activation: 'softmax'
+  manager_clamp_q: 0.0
+  manager_conditioning: 'cat'  # 使用连接条件化
+  manager_mixing: False
+  manager_do: False
+  load_pt_manager: True
+  manager_pt_path: 'pretrained_managers/pt_inr_moe_e4_128x2_128x2_sine_siren_m128x2_128x2_sine_siren.pth'
+  shared_encoder: False  # 使用独立的编码器
+  gaussian_std: 0.05
+  prob_std: 0.2
+  manager_gt_input_sanitycheck: False
+  manager_aux_branch_hidden_dim: 1
+  grid_patch_size: 4096
+
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [ 100, 0.2, 100, 0.4, 0.0, 0.0 ]
+  scale_by_q_grad: False
+  loss_type: '100rgbrecon+0.1balance'  # 🔥 改为0.1balance（与hash一致，轻微约束）
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+  rgbrecon_metric: 'l2'
+
+DATA:
+  name: 'RGBPOSE3D'
+  dataset_path: './MyMoE/images'
+  pose_file: './MyMoE/mri.xlsx'
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true
+  use_global_norm: true  # 🔥 新增：使用全局归一化（与hash一致，保持MRI切片间强度一致性）
+
+TRAINING:
+  n_points: 10000
+  nonmnfld_sample_type: 'combined'
+  grid_res: 160
+  lr: 5.0e-5  # 🔥 降低初始学习率（从1.0e-4降到5.0e-5，减缓过拟合）
+  lr_gamma: 0.999
+  lr_scheduler: 'ExponentialLR'
+  num_epochs: 2000  # 🔥 改为2000（与hash一致，从3000降低）
+  batch_size: 1
+  num_workers: 0
+  refine_epoch: 0
+  grad_clip_norm: 1.0  # 降低梯度裁剪阈值
+  normalize_normal_loss: False
+  unsigned_n: True
+  unsigned_d: False
+  export_vis: False
+  manager_freeze_fraction: 0.0  # 不冻结Manager
+  n_loss_type: 'cos'
+  inter_loss_type: 'exp'
+  sampler_prob: 'none'
+  refine_q_boundaries: False
+  refine_q_boundaries_every: 10
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon+0.1balance'},
+          ]
+  # 🔥 改为单阶段训练（与hash一致，从三阶段简化）
+  # 原来的三阶段：manager→all→experts
+  # 现在的单阶段：全程训练所有参数
+
+TESTING:
+  epoch_n_eval: [0, 2000, 100]  # 🔥 改为2000（匹配新的训练轮数）
+  plot_second_derivs: False
+  batch_size: 1
+  num_workers: 1
+  n_points: 256
+  n_samples: 1
+  grid_res: 160
+  nonmnfld_sample_type: 'grid'
+  plot_q_grad: False
+
+
+
+
+

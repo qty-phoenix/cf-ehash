@@ -1,0 +1,117 @@
+seed: 0
+wandb_project: 'ablation_no_hash_cond_balance_loss'
+
+# 消融实验：Manager不使用共享哈希编码特征 + 传统辅助损失均衡
+# 对比验证：共享哈希特征对路由的贡献
+
+MODEL:
+  model_name: 'inr_moe_hashhybrid_rgb'
+  in_dim: 3
+  out_dim: 1
+  decoder_hidden_dim: 64
+  decoder_n_hidden_layers: 2
+  decoder_input_encoding: 'HE_MoE'
+  decoder_nl: 'sine'
+  decoder_init_type: 'siren'
+  n_experts: 4
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 6.0
+  decoder_trainable_freqs: False
+  top_k: 1
+  
+  # 哈希编码参数
+  hash_n_levels: 12
+  hash_shared_levels: 6
+  hash_n_features_per_level: 2
+  hash_log2_hashmap_size: 16
+  hash_base_resolution: 16
+  hash_finest_resolution: 2048
+
+  # Manager网络配置
+  manager_hidden_dim: 128
+  manager_n_hidden_layers: 2
+  manager_input_encoding: 'PE'
+  manager_nl: 'sine'
+  manager_init: 'siren'
+  centroid_type: 'random'
+  manager_type: 'standard'
+  manager_bias: 'none'
+  experts_bias_std: 0.1
+  experts_bias_weight: 1.0
+  manager_softmax_temperature: 0.1
+  manager_softmax_temp_trainable: True
+  
+  # 🔥 使用传统辅助损失均衡
+  use_expert_bias_for_load_balancing: false
+  expert_bias_update_rate: 0.01
+  
+  manager_use_lipschitz: False
+  manager_q_activation: 'softmax'
+  manager_clamp_q: 0.0
+  manager_conditioning: 'none'  # 🔥 消融关键：不使用共享哈希特征
+  manager_mixing: False
+  manager_do: False
+  load_pt_manager: False
+  shared_encoder: False
+  gaussian_std: 0.05
+  prob_std: 0.2
+  manager_gt_input_sanitycheck: False
+  manager_aux_branch_hidden_dim: 1
+  grid_patch_size: 4096
+
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [ 100, 0.2, 100, 0.4, 0.0, 0.0 ]
+  scale_by_q_grad: False
+  loss_type: '1000rgbrecon+10balance'  # 🔥 重建损失1000 + 平衡损失10
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+  rgbrecon_metric: 'l2'
+
+DATA:
+  dataset_path: './MyMoE/uvfdata2'
+  pose_file: './MyMoE/coords3d/uvfdata2.xlsx'
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true
+  use_global_norm: true
+  crop_size: null
+  use_uvfdata2_calibration: true
+
+TRAINING:
+  lr: 1.0e-4
+  lr_gamma: 0.999
+  lr_step_size: 10
+  lr_scheduler: 'StepLR'
+  num_epochs: 1000
+  batch_size: 1
+  num_workers: 0
+  grad_clip_norm: 1.0
+  manager_freeze_fraction: 0.0
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '1000rgbrecon+10balance'},
+          ]

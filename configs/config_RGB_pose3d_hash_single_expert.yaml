@@ -1,0 +1,106 @@
+seed: 0
+wandb_project: 'hash_encoding_single_expert'
+
+MODEL:
+  model_name: 'inr_rgb'  # 单专家模型（不用MoE）
+  in_dim: 3
+  out_dim: 1  # 灰度图
+  decoder_hidden_dim: 32  # 增大容量以补偿单专家
+  decoder_n_hidden_layers: 2  # 增加层数
+  decoder_input_encoding: 'HE'  # 使用哈希编码
+  decoder_nl: 'sine'  # SIREN激活
+  decoder_init_type: 'siren'  # SIREN初始化
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 6.0
+  decoder_trainable_freqs: False
+  
+  # 哈希编码参数
+  hash_n_levels: 12
+  hash_n_features_per_level: 2
+  hash_log2_hashmap_size: 14
+  hash_base_resolution: 16
+  hash_finest_resolution: 2048
+  
+  # 单专家模型也需要这个参数
+  n_experts: 1
+  
+  # 以下参数对单专家无效，但需要保留以兼容代码
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  loss_type: '1000rgbrecon'  # 与多专家保持一致，用100，无平衡损失
+  rgbrecon_metric: 'l2'
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [100, 0.2, 100, 0.4, 0.0, 0.0]
+  scale_by_q_grad: False
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+
+DATA:
+  name: 'RGBPOSE3D'
+  dataset_path: './MyMoE/uvfdata2'#LH_Par_C_DtP2
+  pose_file: './MyMoE/coords3d/uvfdata2.xlsx'#LH_Par_C_DtP2
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true
+  use_global_norm: true
+
+TRAINING:
+  n_points: 10000
+  nonmnfld_sample_type: 'combined'
+  grid_res: 160
+  lr: 1.0e-4  # 与多专家完全一致
+  lr_gamma: 0.999  # 与多专家一致
+  lr_scheduler: 'ExponentialLR'
+  num_epochs: 200  # 单专家通常收敛更快
+  batch_size: 1
+  num_workers: 0
+  refine_epoch: 0
+  grad_clip_norm: 1.0
+  normalize_normal_loss: False
+  unsigned_n: True
+  unsigned_d: False
+  export_vis: False
+  manager_freeze_fraction: 0.0
+  n_loss_type: 'cos'
+  inter_loss_type: 'exp'
+  sampler_prob: 'none'
+  refine_q_boundaries: False
+  refine_q_boundaries_every: 10
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon'},
+          ]
+
+TESTING:
+  epoch_n_eval: [0, 1000, 100]
+  plot_second_derivs: False
+  batch_size: 1
+  num_workers: 1
+  n_points: 256
+  n_samples: 1
+  grid_res: 160
+  nonmnfld_sample_type: 'grid'
+  plot_q_grad: False
+

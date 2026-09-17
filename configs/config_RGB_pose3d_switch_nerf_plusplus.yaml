@@ -1,0 +1,123 @@
+seed: 0
+wandb_project: 'switch_nerf_plusplus_rgb_pose3d_uvfdata2'
+
+MODEL:
+  model_name: 'switch_nerf_plusplus_rgb'  # Switch NeRF++模型
+  in_dim: 3  # 3D坐标（包含pose信息）
+  out_dim: 1  # 灰度图，set to 3 if RGB
+  
+  # 解码器配置
+  decoder_hidden_dim: 64  # 解码器隐藏层维度
+  decoder_n_hidden_layers: 2  # 解码器层数
+  decoder_input_encoding: 'HE_Heterogeneous'  # 使用异构哈希编码
+  decoder_nl: 'sine'  # 使用SIREN激活函数sine
+  decoder_init_type: 'siren'  # SIREN专用初始化siren
+  n_experts: 4  # 4个专家
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 10.0
+  decoder_trainable_freqs: False
+  
+  # Switch NeRF++异构哈希专家编码参数
+  hash_n_levels_per_expert: 6  # 每个专家的哈希层级数量
+  hash_n_features_per_level: 2  # 每层特征数
+  hash_log2_hashmap_size: 16  # 哈希表大小 2^16 = 65536
+  # 每个专家的分辨率范围（异构设计）
+  # Expert 0: 低分辨率范围 [16, 512] - 适合粗糙区域
+  # Expert 1: 中低分辨率范围 [32, 1024] - 适合中等细节
+  # Expert 2: 中高分辨率范围 [64, 2048] - 适合精细细节
+  # Expert 3: 高分辨率范围 [128, 4096] - 适合超精细细节
+  hash_base_resolutions: [16, 32, 64, 128]
+  hash_finest_resolutions: [256, 512, 1024, 2048]
+  
+  # Manager网络配置（基于哈希的门控网络）
+  manager_hidden_dim: 128  # Manager隐藏层维度
+  manager_n_hidden_layers: 2  # Manager层数
+  manager_input_encoding: 'HE'  # Manager使用哈希编码（而不是PE）
+  manager_nl: 'sine'  # 使用SIREN激活函数
+  manager_init: 'siren'  # SIREN专用初始化
+  centroid_type: 'random'
+  manager_type: 'standard'
+  manager_bias: 'none'
+  experts_bias_std: 0.1
+  experts_bias_weight: 1.0
+  manager_softmax_temperature: 0.1  # 温度参数（较低值使选择更sharp）
+  manager_softmax_temp_trainable: True  # 允许温度可训练
+  manager_use_lipschitz: False
+  manager_q_activation: 'softmax'
+  manager_clamp_q: 0.0
+  
+  # Manager哈希编码参数
+  manager_hash_n_levels: 8  # Manager哈希编码层级
+  manager_hash_n_features_per_level: 2  # Manager每层特征数
+  manager_hash_log2_hashmap_size: 14  # Manager哈希表大小 2^14 = 16384
+  manager_hash_base_resolution: 16  # Manager基础分辨率
+  manager_hash_finest_resolution: 1024  # Manager精细分辨率
+  
+  manager_conditioning: 'none'  # Switch NeRF++不使用条件化
+  manager_mixing: False
+  manager_do: False
+  load_pt_manager: False
+  shared_encoder: False
+  gaussian_std: 0.05
+  prob_std: 0.2
+  manager_gt_input_sanitycheck: False
+  manager_aux_branch_hidden_dim: 1
+  grid_patch_size: 4096
+
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [ 100, 0.2, 100, 0.4, 0.0, 0.0 ]
+  scale_by_q_grad: False
+  loss_type: '1000rgbrecon+0.1balance'  # 重建损失权重1000 + 平衡损失0.1
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+  rgbrecon_metric: 'l2'
+
+DATA:
+  dataset_path: './MyMoE/LH_Par_C_DtP2'  # 数据路径uvfdata2
+  pose_file: './MyMoE/coords3d/LH_Par_C_DtP2.xlsx'  # 位姿文件uvfdata2
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true  # 角度单位
+  use_global_norm: true  # 使用全局归一化
+  crop_size: null  # 保持640×480完整分辨率，不裁剪
+  use_uvfdata2_calibration: true  # 使用uvfdata2标定矩阵（S和C矩阵）
+
+TRAINING:
+  lr: 1.0e-4  # 基础学习率
+  lr_gamma: 0.999  # 每个epoch下降到原来的0.999倍
+  lr_step_size: 10  # 每10个epoch下降一次
+  lr_scheduler: 'StepLR'  # 使用StepLR调度器
+  num_epochs: 1000  # 训练轮数
+  batch_size: 1
+  num_workers: 0
+  grad_clip_norm: 1.0  # 梯度裁剪
+  manager_freeze_fraction: 0.0
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon+0.1balance'},
+          ]
+

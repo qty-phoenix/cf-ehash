@@ -1,0 +1,107 @@
+seed: 0
+wandb_project: 'single_expert_uvfdata2_ablation'  # 消融实验：与多专家版本对比
+
+MODEL:
+  model_name: 'inr_rgb'  # 单专家模型
+  in_dim: 3
+  out_dim: 1  # 灰度图像，如果是RGB则设为3
+  decoder_hidden_dim: 64  # 与多专家版本一致
+  decoder_n_hidden_layers: 2  # 保持2层
+  decoder_input_encoding: 'HE'  # 哈希编码 (Hash Encoding)
+  decoder_nl: 'sine'
+  decoder_init_type: 'siren'
+  n_experts: 1
+  outermost_linear: True
+  decoder_init_r: 0.5
+  decoder_pt_path: null
+  decoder_freqs: 10.0
+  decoder_trainable_freqs: False
+  
+  # 哈希编码参数 - 与多专家版本一致
+  hash_n_levels: 16  # 与多专家版本一致
+  hash_n_features_per_level: 2  # 与多专家版本一致
+  hash_log2_hashmap_size: 19  # 与多专家版本一致 (2^16 ≈ 6.5万)
+  hash_base_resolution: 16  # 与多专家版本一致
+  hash_finest_resolution: 2048  # 与多专家版本一致
+  
+  # 以下参数对单专家无效，但保留兼容性
+  encoder_type: 'none'
+  encoder_hidden_dim: 8
+  latent_size: 0
+  sphere_init_params: [1.6, 0.1]
+  planar_init_params: {'centroids': null, 'normals': null, 'idx': null, 'dim': null}
+  use_hashtable: False
+  aux_type: 'img'
+
+LOSS:
+  div_metric_type: 'l1'
+  normal_metric_type: 'cos'
+  eikonal_metric_type: 'l1'
+  appxsdf_metric_type: 'l2'
+  div_clamp: 50
+  sdf_clamp: 1.0
+  div_decay_type: 'linear'
+  div_decay_params: [100, 0.2, 100, 0.4, 0.0, 0.0]
+  scale_by_q_grad: False
+  loss_type: '1000rgbrecon'  # 与多专家版本一致
+  sample_bias_correction: False
+  appxsdf_threshold: 0.01
+  entropy_metric: 'kl'
+  segmentation_type: 'both'
+  rgbrecon_metric: 'l2'
+
+DATA:
+  name: 'RGBPOSE3D'
+  dataset_path: './MyMoE/LH_Par_C_DtP2'  # 与多专家版本使用相同数据集uvfdata2
+  pose_file: './MyMoE/coords3d/LH_Par_C_DtP2.xlsx'  # 与多专家版本使用相同位姿文件uvfdata2
+  downsample_factor: 1
+  segmentation_type: 'none'
+  grid_patch_size: 1
+  kmeansspace: 'rgb'
+  n_segments: 1
+  get_dino: False
+  copy_to_gpu: False
+  angles_in_degrees: true  # 角度单位
+  use_global_norm: true  # 使用全局归一化
+  crop_size: null  # 保持640×480完整分辨率，不裁剪
+  use_uvfdata2_calibration: true  # 与多专家版本一致，使用uvfdata2标定矩阵
+
+TRAINING:
+  n_points: 10000
+  nonmnfld_sample_type: 'combined'
+  grid_res: 160
+  lr: 1.0e-4
+  lr_gamma: 0.999  # 每个epoch下降到原来的0.999倍
+  lr_step_size: 10  # 每10个epoch下降一次
+  lr_scheduler: 'StepLR'
+  num_epochs: 1000  # 与多专家版本一致
+  batch_size: 1
+  num_workers: 0
+  refine_epoch: 0
+  grad_clip_norm: 1.0
+  normalize_normal_loss: False
+  unsigned_n: True
+  unsigned_d: False
+  export_vis: False
+  manager_freeze_fraction: 0.0
+  n_loss_type: 'cos'
+  inter_loss_type: 'exp'
+  sampler_prob: 'none'
+  refine_q_boundaries: False
+  refine_q_boundaries_every: 10
+  save_reconstructed_imgs: False
+  stages: [
+           {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon'},
+          ]
+
+TESTING:
+  epoch_n_eval: [0, 3000, 250]
+  plot_second_derivs: False
+  batch_size: 1
+  num_workers: 1
+  n_points: 256
+  n_samples: 1
+  grid_res: 160
+  nonmnfld_sample_type: 'grid'
+  plot_q_grad: False
+
