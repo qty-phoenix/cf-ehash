@@ -343,7 +343,7 @@ def main():
     parser.add_argument('--pred_pose', type=str,
                         default='./bridge_nr_rec_fus/data/predicted_poses_uvfdata2.xlsx')
     parser.add_argument('--config', type=str,
-                        default='./configs/uvfdata2.yaml')
+                        default='./configs/hash_multi_expert_uvfdata2.yaml')
     parser.add_argument('--images_dir', type=str,
                         default='./MyMoE/uvfdata2')
     parser.add_argument('--logdir_gt', type=str,

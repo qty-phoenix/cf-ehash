@@ -14,7 +14,7 @@ from datasets.RGBPose3D_GlobalNorm_Cached import RGBPose3DDatasetGlobalNorm
 from datasets.RGBPose3D_Cached import RGBPose3DDataset
 
 def evaluate():
-    config_path = 'configs/ultranerf_uvfdata2.yaml'
+    config_path = 'configs/comparison_methods/ultranerf_uvfdata2.yaml'
     ckpt_path = 'log/ultranerf_uvfdata2/models/inr_ultranerf_rgb_gradient_fixed_0.pth'
     device = torch.device('cuda:0')
 
