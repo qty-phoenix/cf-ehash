@@ -68,3 +68,6 @@ venv/
 *.log
 *.pem
 *.key
+
+# Local-only analysis and plotting scripts
+/local_analysis/
