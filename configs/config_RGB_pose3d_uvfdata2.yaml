@@ -71,8 +71,8 @@ LOSS:
   div_decay_type: 'linear'
   div_decay_params: [ 100, 0.2, 100, 0.4, 0.0, 0.0 ]
   scale_by_q_grad: False
-  loss_type: '100rgbrecon+0.1balance'  # 移除了+0.5qentropy，因为train_rgb_pose3d_gradient_fixed.py和train_rgb_pose3d_hash_multi_expert.py不支持qentropy
-  # 如果需要使用qentropy，请使用train_rgb_pose3d_moe.py训练脚本
+  loss_type: '100rgbrecon+0.1balance'  # 移除了+0.5qentropy，因为gradient_fixed.py和hash_multi_expert.py不支持qentropy
+  # 如果需要使用qentropy，请使用moe.py训练脚本
   sample_bias_correction: False
   appxsdf_threshold: 0.01
   entropy_metric: 'kl'
@@ -119,8 +119,8 @@ TRAINING:
 #  refine_q_boundaries: False
 #  refine_q_boundaries_every: 10
   save_reconstructed_imgs: False
-  # stages配置已注释，因为train_rgb_pose3d_gradient_fixed.py和train_rgb_pose3d_hash_multi_expert.py不使用分阶段训练
-  # 如果需要使用stages，请使用train_rgb_pose3d_moe.py训练脚本
+  # stages配置已注释，因为gradient_fixed.py和hash_multi_expert.py不使用分阶段训练
+  # 如果需要使用stages，请使用moe.py训练脚本
   stages: [
             {'end_iteration_frac': 1.0, 'params':'all', 'loss_type': '100rgbrecon+0.1balance'},
            ]

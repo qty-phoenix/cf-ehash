@@ -2,7 +2,7 @@
 """
 多专家版本哈希编码的RGB Pose3D训练脚本
 前11层哈希编码共用，最后一层使用多专家路由
-基于train_rgb_pose3d_single_expert.py，但使用多专家混合哈希编码模型（INR_MoE_HashHybrid）
+基于single_expert.py，但使用多专家混合哈希编码模型（INR_MoE_HashHybrid）
 """
 
 import os

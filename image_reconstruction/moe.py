@@ -2,7 +2,7 @@
 """
 全功能版 RGB Pose3D 训练脚本（MoE 管线）
 
-相对于 `train_rgb_pose3d_gradient_fixed.py` 的关键补强：
+相对于 `gradient_fixed.py` 的关键补强：
 1. 引入 soft-MoE 训练流程（TrainingStageHandler + RGBImageLoss）
 2. 所有专家参与重建与路由损失，支持论文中的平衡/分割/熵等项
 3. 支持 Manager 预训练权重、双编码器输入与温度可学习 softmax

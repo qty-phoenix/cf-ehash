@@ -2,7 +2,7 @@
 """
 Switch NeRF++ 训练脚本
 基于论文: "Learning Heterogeneous Mixture of Scene Experts for Large-scale Neural Radiance Fields"
-参照 train_rgb_pose3d_hash_multi_expert.py 的输入输出格式和可视化方式
+参照 hash_multi_expert.py 的输入输出格式和可视化方式
 """
 
 import os
